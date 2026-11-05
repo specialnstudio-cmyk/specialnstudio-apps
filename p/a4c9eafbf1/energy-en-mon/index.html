@@ -1,0 +1,139 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Energy 2027"><meta name="theme-color" content="#2A1630">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-512.png">
+<title>Chase Your Energy 2027 · Energy</title><link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Caveat+Brush&family=Space+Grotesk:wght@400;500;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"><style id="lcss"></style>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-size-adjust:100%}
+#stage{position:absolute;left:0;top:0;transform-origin:0 0}
+#stage>.art{position:absolute;left:0;top:0;pointer-events:none}
+#stage>.page{position:absolute;left:0;top:0}
+#stage input,#stage textarea{position:absolute;margin:0;padding:0 2px;border:0;outline:0;background:transparent;
+  font-family:'Space Grotesk',sans-serif;color:#2A1630;resize:none;border-radius:4px}
+#stage input:focus,#stage textarea:focus{background:rgba(255,201,60,.18)}
+#stage input[type=checkbox]{-webkit-appearance:none;appearance:none;cursor:pointer}
+#stage input[type=checkbox]:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-weight:700;color:#2A1630}
+#mbtn{position:fixed;z-index:5;left:calc(env(safe-area-inset-left) + 6px);bottom:calc(env(safe-area-inset-bottom) + 6px);
+  width:30px;height:30px;border-radius:50%;border:0;background:rgba(42,22,48,.55);color:#fff;font:700 16px sans-serif}
+#menu{position:fixed;z-index:6;inset:0;background:rgba(42,22,48,.45);display:none;align-items:center;justify-content:center}
+#menu div{background:#FFF6E9;color:#2A1630;border-radius:18px;padding:22px;max-width:340px;margin:16px;
+  font:16px/1.4 -apple-system,system-ui,sans-serif;text-align:center}
+#menu button{display:block;width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #2A1630;
+  background:#fff;font:700 16px -apple-system,system-ui,sans-serif;color:#2A1630}
+#wait{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:16px sans-serif;color:#fff}
+</style></head><body>
+<div id="stage"></div><div id="wait">Loading…</div>
+<button id="mbtn" aria-label="Menu">⋯</button>
+<div id="menu"><div><p>Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
+<button id="bclose">Close</button><input id="file" type="file" accept=".json,application/json" hidden></div></div>
+<script>
+const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en"}, T = {"menu": "Menu", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "note": "Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
+let data = {}; try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+let layout = null, meta = null, cur = null, scale = 1;
+const files = {};
+const get = (u, kind) => files[u] || (files[u] = fetch(u).then(r => { if (!r.ok) throw u; return kind === 'json' ? r.json() : r.text(); }));
+const pick = () => { const r = innerWidth / innerHeight; return r < .62 ? 'phone' : r < 1.08 ? 'portrait' : 'landscape'; };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} };
+
+function fill(root) {  // the writing lines, dots and grids (same drawing as the PDF)
+  root.querySelectorAll('[data-fill]').forEach(el => {
+    const kind = el.dataset.fill, g = +(el.dataset.gap || (kind === 'lines' ? 32 : 26));
+    const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return;
+    let d = '', sw = 1.6, col = 'rgba(42,22,48,.22)', cap = 'butt';
+    if (kind === 'lines') { for (let y = g; y < h - 4; y += g) d += `M10 ${y}H${w - 10}`; }
+    if (kind === 'grid') { col = 'rgba(42,22,48,.13)'; sw = 1.1;
+      for (let y = g; y < h; y += g) d += `M0 ${y}H${w}`; for (let x = g; x < w; x += g) d += `M${x} 0V${h}`; }
+    if (kind === 'dots') { sw = 3; cap = 'round'; col = 'rgba(42,22,48,.32)';
+      for (let y = g; y < h - 2; y += g) for (let x = g; x < w - 2; x += g) d += `M${x} ${y}h0`; }
+    el.insertAdjacentHTML('afterbegin', `<svg width="${w}" height="${h}" style="position:absolute;left:0;top:0">` +
+      `<path d="${d}" stroke="${col}" stroke-width="${sw}" stroke-linecap="${cap}" fill="none"/></svg>`);
+  });
+}
+
+function fields(pg, pid) {  // text boxes and check boxes over every writing line, keyed by box label so layouts share them
+  const P = pg.getBoundingClientRect(), out = [], count = {}, boxes = new Map();
+  const box = el => { const b = el.closest('.bx,.tbl,.field,.area,.row,.col') || pg;
+    if (!boxes.has(b)) { const c = b.querySelector('.chip,.label,b,a'); boxes.set(b, ((c && c.textContent) || 'x' + boxes.size).trim().slice(0, 24)); }
+    return boxes.get(b); };
+  const add = (el, t, x, y, w, h) => { if (w / scale < 18 || h / scale < 10) return; const b = box(el), k = `${b}|${t}`;
+    count[k] = (count[k] || 0) + 1; out.push({t, x: (x - P.left) / scale, y: (y - P.top) / scale, w: w / scale, h: h / scale,
+      key: `${pid}|${k}${count[k]}`}); };
+  const after = (el, r) => { let x = r.left + 6 * scale;
+    el.querySelectorAll('b,span,.box,svg').forEach(c => { const q = c.getBoundingClientRect();
+      if (q.width && q.left < r.left + r.width * .5) x = Math.max(x, q.right + 8 * scale); }); return x; };
+  pg.querySelectorAll('.box').forEach(b => { const r = b.getBoundingClientRect(); add(b, 'c', r.left, r.top, r.width, r.height); });
+  pg.querySelectorAll('.ln,.field').forEach(el => { const r = el.getBoundingClientRect(), x = after(el, r);
+    let right = r.right - 4 * scale; el.querySelectorAll('.plus').forEach(c => right = Math.min(right, c.getBoundingClientRect().left - 6 * scale));
+    add(el, 't', x, r.top + 2 * scale, right - x, r.height - 4 * scale); });
+  pg.querySelectorAll('.tbl .tr > div').forEach(el => { if (el.querySelector('b')) return; const r = el.getBoundingClientRect();
+    add(el, 't', r.left + 4 * scale, r.top + scale, r.width - 8 * scale, r.height - 2 * scale); });
+  pg.querySelectorAll('[data-fill]').forEach(el => { const r = el.getBoundingClientRect(); if (!r.width) return;
+    if (el.dataset.fill === 'lines') { const g = +(el.dataset.gap || 32) * scale;
+      for (let y = g; y < r.height - 4 * scale; y += g) add(el, 't', r.left + 10 * scale, r.top + y - g + 4 * scale, r.width - 20 * scale, g - 5 * scale);
+    } else add(el, 'm', r.left + 8 * scale, r.top + 8 * scale, r.width - 16 * scale, r.height - 16 * scale); });
+  for (const f of out) {
+    const el = document.createElement(f.t === 'm' ? 'textarea' : 'input');
+    el.type = f.t === 'c' ? 'checkbox' : 'text';
+    Object.assign(el.style, {left: f.x + 'px', top: f.y + 'px', width: f.w + 'px', height: f.h + 'px',
+      fontSize: (f.t === 'm' ? 17 : Math.max(13, Math.min(18, f.h * .62))) + 'px'});
+    if (f.t === 'c') { el.checked = !!data[f.key]; el.onchange = () => { data[f.key] = el.checked || undefined; save(); }; }
+    else { el.value = data[f.key] || ''; el.oninput = () => { data[f.key] = el.value || undefined; save(); }; }
+    stage.appendChild(el);
+  }
+}
+
+function fit() {
+  if (!meta) return; scale = Math.min(innerWidth / meta.W, innerHeight / meta.H);
+  stage.style.transform = `translate(${(innerWidth - meta.W * scale) / 2}px,${(innerHeight - meta.H * scale) / 2}px) scale(${scale})`;
+}
+
+async function show(pid) {
+  const want = pick();
+  if (want !== layout) { layout = want; meta = await get(`${layout}/meta.json`, 'json');
+    document.getElementById('lcss').textContent = meta.css; }
+  let i = meta.ids.indexOf(pid); if (i < 0) { pid = meta.ids[0]; i = 0; }
+  const [chunk, ...arts] = await Promise.all([get(`${layout}/c${Math.floor(i / APP.chunk)}.json`, 'json'),
+    ...meta.art[i].map(a => get(`${layout}/a${a}.svg`))]);
+  cur = pid; fit();
+  stage.style.width = meta.W + 'px'; stage.style.height = meta.H + 'px';
+  stage.innerHTML = arts.map(s => `<div class="art">${s}</div>`).join('') + chunk[pid];
+  const pg = stage.querySelector('.page'); fill(pg); fields(pg, pid);
+  document.getElementById('wait').style.display = 'none';
+  if (location.hash.slice(1) !== pid) history.replaceState(null, '', '#' + pid);
+  scrollTo(0, 0);
+}
+
+stage.addEventListener('click', e => {
+  const a = e.target.closest('a'); if (!a) return; const h = a.getAttribute('href') || '';
+  if (h.startsWith('#')) { e.preventDefault(); if (h.length > 1) { history.pushState(null, '', h); show(h.slice(1)); } }
+  else if (h.startsWith('http')) { e.preventDefault(); open(h, '_blank'); }
+});
+addEventListener('popstate', () => show(location.hash.slice(1) || APP.home));
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => pick() !== layout ? show(cur) : fit(), 150); });
+
+const menu = document.getElementById('menu');
+document.getElementById('mbtn').onclick = () => menu.style.display = 'flex';
+document.getElementById('bclose').onclick = () => menu.style.display = 'none';
+document.getElementById('bsave').onclick = () => {
+  const blob = new Blob([JSON.stringify({planner: KEY, data})], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `${APP.file}-${new Date().toISOString().slice(0, 10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+  alert(T.saved);
+};
+const file = document.getElementById('file');
+document.getElementById('bload').onclick = () => file.click();
+file.onchange = async () => {
+  try { const j = JSON.parse(await file.files[0].text()); if (!j || typeof j.data !== 'object') throw 0;
+    data = j.data; save(); alert(T.loaded); menu.style.display = 'none'; show(cur); } catch (e) { alert(T.bad); }
+  file.value = '';
+};
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+show(location.hash.slice(1) || APP.home).then(() => setTimeout(async () => {  // keep this layout offline: fetch it once, quietly
+  const l = layout, n = Math.ceil(meta.ids.length / APP.chunk), na = Math.max(...meta.art.flat()) + 1;
+  for (const u of [...Array(n).keys()].map(i => `${l}/c${i}.json`).concat([...Array(na).keys()].map(i => `${l}/a${i}.svg`)))
+    try { await fetch(u); } catch (e) { return; }
+}, 3000));
+</script></body></html>
