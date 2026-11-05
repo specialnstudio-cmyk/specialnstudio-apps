@@ -34,12 +34,14 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
 #nbar button:disabled{opacity:.35}
 #nbar span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-decoration:underline dotted}
 #nlist{position:fixed;z-index:7;inset:0;background:rgba(42,22,48,.45);display:none;align-items:center;justify-content:center}
-#nlist>div{background:#FFF6E9;color:#2A1630;border-radius:18px;padding:18px;width:min(420px,calc(100vw - 32px));max-height:80vh;overflow:auto;
+#nlist>div{box-sizing:border-box;overflow-x:hidden;background:#FFF6E9;color:#2A1630;border-radius:18px;padding:18px;width:min(420px,calc(100vw - 32px));max-height:80vh;overflow:auto;
   font:16px -apple-system,system-ui,sans-serif}
 #nlist h3{margin:0 0 10px}
 #nlist label{display:block;margin:8px 0;font-weight:600}
 #nlist label input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:10px;border:2px solid #2A1630;border-radius:10px;
-  font:16px -apple-system,system-ui,sans-serif;background:#fff;color:#2A1630}
+  font:16px -apple-system,system-ui,sans-serif;background:#fff;color:#2A1630;max-width:100%;min-width:0}
+#nlist label input[type=date]{-webkit-appearance:none;appearance:none;min-height:46px;text-align:left;line-height:24px}
+#nlist label input[type=date]::-webkit-date-and-time-value{text-align:left}
 #nlist .nr{display:flex;align-items:center;gap:8px;margin:6px 0}
 #nlist .nr.on input{border-color:#FF3E8A}
 #nlist .nr b{width:24px;text-align:right}
