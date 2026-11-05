@@ -43,7 +43,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
 #nlist label input[type=date]{-webkit-appearance:none;appearance:none;min-height:46px;text-align:left;line-height:24px}
 #nlist label input[type=date]::-webkit-date-and-time-value{text-align:left}
 #nlist .nr{display:flex;align-items:center;gap:8px;margin:6px 0}
-#nlist .nr.on input{border-color:#FF3E8A}
+#nlist .nr.on input{border-color:#FF3E8A;box-shadow:3px 3px 0 #FF3E8A}
 #nlist .nr b{width:24px;text-align:right}
 #nlist input{flex:1;min-width:0;padding:9px 10px;border:2px solid #2A1630;border-radius:10px;font:16px -apple-system,system-ui,sans-serif}
 #nlist .nr button{width:40px;height:40px;border-radius:10px;border:2px solid #2A1630;background:#fff;font:700 18px sans-serif;color:#2A1630}
@@ -54,33 +54,33 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
 #stage .px.plus{right:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;opacity:.55;pointer-events:none}
 /* dialogs in the planner's look: cream card, ink outline, offset shadow, a stripe of the planner colours */
 #menu,#nlist{background:rgba(42,22,48,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-#menu>div,#nlist>div{box-sizing:border-box;border:3px solid #2A1630;border-radius:26px;box-shadow:8px 8px 0 #2A1630;padding:34px 22px 22px;
+#menu>div,#nlist>div{box-sizing:border-box;border:3px solid #2348C8;border-radius:26px;box-shadow:8px 8px 0 #FF3E8A;padding:34px 22px 22px;
   background:repeating-linear-gradient(90deg,#FF3E8A 0 22px,#FFC93C 22px 44px,#8CC8F0 44px 66px,#9BE8B4 66px 88px,#B79CFF 88px 110px)
   top/100% 14px no-repeat,#FFF6E9;font-family:'Space Grotesk',sans-serif}
-#menu h3,#nlist h3{display:inline-block;margin:0 0 12px;padding:5px 16px 3px;background:#FF3E8A;color:#fff;border:2.5px solid #2A1630;border-radius:12px;
-  box-shadow:3px 3px 0 #2A1630;transform:rotate(-1.5deg);color:#fff;font:900 30px/1 'Big Shoulders Display',sans-serif;text-transform:uppercase;letter-spacing:.02em}
+#menu h3,#nlist h3{display:inline-block;margin:0 0 12px;padding:5px 16px 3px;background:#FF3E8A;color:#fff;border:2.5px solid #2348C8;border-radius:12px;
+  box-shadow:3px 3px 0 #FFC93C;transform:rotate(-1.5deg);color:#fff;font:900 30px/1 'Big Shoulders Display',sans-serif;text-transform:uppercase;letter-spacing:.02em}
 #nlist label{font:700 12px 'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.14em;margin:12px 0 6px}
-#nlist label select,#nlist label input,#nlist input{border:2.5px solid #2A1630;border-radius:14px;box-shadow:3px 3px 0 #2A1630;
+#nlist label select,#nlist label input,#nlist input{border:2.5px solid #2348C8;border-radius:14px;box-shadow:3px 3px 0 #8CC8F0;
   font:500 17px 'Space Grotesk',sans-serif;text-transform:none;letter-spacing:0;padding:11px 12px;background:#fff}
 #nlist p,#menu p{font:22px/1.2 'Caveat Brush',cursive;color:#2348C8;margin:14px 0 6px}
 #menu p{font:500 15px/1.45 'Space Grotesk',sans-serif;color:#2A1630;text-align:left}
-#nlist>div>button,#menu button{border:2.5px solid #2A1630;border-radius:30px;box-shadow:3px 3px 0 #2A1630;margin-top:12px;
+#nlist>div>button,#menu button{border:2.5px solid #2348C8;border-radius:30px;box-shadow:3px 3px 0 #FF3E8A;margin-top:12px;
   font:700 16px 'Space Grotesk',sans-serif;letter-spacing:.02em;color:#2A1630;background:#fff}
-#nlist>div>button:active,#menu button:active,#nlist .nr button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #2A1630}
+#nlist>div>button:active,#menu button:active,#nlist .nr button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #FF3E8A}
 #nlist button[data-apple],#menu #bload{background:#8CC8F0}
 #nlist button[data-google],#menu #bsave{background:#FFC93C}
 #nlist button[data-new]{background:#9BE8B4}
 #nlist .nr b{font:900 22px 'Big Shoulders Display',sans-serif;color:#FF3E8A}
-#nlist .nr button{border:2.5px solid #2A1630;border-radius:12px;box-shadow:2px 2px 0 #2A1630;background:#FFC93C}
-#mbtn{background:#FF3E8A;border:2px solid #fff;box-shadow:2px 2px 0 rgba(0,0,0,.35)}
+#nlist .nr button{border:2.5px solid #2348C8;border-radius:12px;box-shadow:2px 2px 0 #FF3E8A;background:#FFC93C}
+#stage .appmenu{margin-left:auto;align-self:center;flex:none;font-family:'Space Grotesk',sans-serif;font-size:15px;padding:9px 16px;
+  background:#FFC93C;cursor:pointer}
 #wait{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:16px sans-serif;color:#fff}
 </style></head><body>
 <div id="stage"></div><div id="nlist"></div><div id="wait">Loading…</div>
-<button id="mbtn" aria-label="Menu">⋯</button>
-<div id="menu"><div><h3>Menu</h3><p>Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet; tap the page number to name your sheets and jump to one. On the vision board and the bookshelf, tap a frame or a book to add a photo. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
+<div id="menu"><div><h3>Backup & help</h3><p>Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet; tap the page number to name your sheets and jump to one. On the vision board and the bookshelf, tap a frame or a book to add a photo. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
 <button id="bclose">Close</button><input id="file" type="file" accept=".json,application/json" hidden></div></div>
 <script>
-const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en", "year": 2027, "notes": ["t-dot", "t-lined", "t-grid", "t-blank", "t-cornell", "t-brain"]}, T = {"menu": "Menu", "bday": "Add a birthday", "bname": "Name", "bdate": "Date", "badd": "Add to Apple Calendar", "bgoogle": "Add to Google Calendar", "bnote": "You get an alert when it starts.", "rem": "Add a reminder", "brep": "Repeat", "freq": ["Never", "Every day", "Every week", "Every month", "Every year"], "btitle": "🎂 ", "unphoto": "Remove this photo? (Cancel chooses a new one.)", "full": "This device's planner storage is full. Remove a few photos, then save a backup.", "page": "Page", "pages": "Pages", "newpage": "New page", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "hint": "Swipe left or right to turn the page", "note": "Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet; tap the page number to name your sheets and jump to one. On the vision board and the bookshelf, tap a frame or a book to add a photo. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
+const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en", "year": 2027, "notes": ["t-dot", "t-lined", "t-grid", "t-blank", "t-cornell", "t-brain"]}, T = {"menu": "Backup & help", "bday": "Add a birthday", "bname": "Name", "bdate": "Date", "badd": "Add to Apple Calendar", "bgoogle": "Add to Google Calendar", "bnote": "You get an alert when it starts.", "rem": "Add a reminder", "brep": "Repeat", "freq": ["Never", "Every day", "Every week", "Every month", "Every year"], "btitle": "🎂 ", "unphoto": "Remove this photo? (Cancel chooses a new one.)", "full": "This device's planner storage is full. Remove a few photos, then save a backup.", "page": "Page", "pages": "Pages", "newpage": "New page", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "hint": "Swipe left or right to turn the page", "note": "Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet; tap the page number to name your sheets and jump to one. On the vision board and the bookshelf, tap a frame or a book to add a photo. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
 let data = {}; try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
 let layout = null, meta = null, cur = null, scale = 1;
 const files = {};
@@ -228,6 +228,9 @@ async function show(pid) {
   stage.innerHTML = arts.map(s => `<div class="art">${s}</div>`).join('') + chunk[pid];
   const sid = sheet > 1 ? `${pid}~${sheet}` : pid;  // later note sheets keep their own text
   const pg = stage.querySelector('.page'); fill(pg); fields(pg, sid); taps(pg, sid); photos(pg, sid); noteBar(pid);
+  if (/^index/.test(pid)) {  // the app menu (backup, help) lives on the index pages, next to the title
+    const h = pg.querySelector('.hdr'), b = document.createElement('button'); b.className = 'btn appmenu'; b.textContent = '⚙ ' + T.menu;
+    b.onclick = e => { e.stopPropagation(); openMenu(); }; if (h) h.appendChild(b); }
   document.getElementById('wait').style.display = 'none';
   if (location.hash.slice(1) !== sid) history.replaceState(null, '', '#' + sid);
   scrollTo(0, 0);
@@ -303,7 +306,7 @@ addEventListener('keydown', e => { if (/INPUT|TEXTAREA/.test(document.activeElem
 let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => pick() !== layout ? show(location.hash.slice(1) || cur) : fit(), 150); });
 
 const menu = document.getElementById('menu');
-document.getElementById('mbtn').onclick = () => menu.style.display = 'flex';
+const openMenu = () => menu.style.display = 'flex';
 document.getElementById('bclose').onclick = () => menu.style.display = 'none';
 document.getElementById('bsave').onclick = () => {
   const blob = new Blob([JSON.stringify({planner: KEY, data})], {type: 'application/json'});
