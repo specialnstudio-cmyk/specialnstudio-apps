@@ -86,7 +86,14 @@ const APP = {"key": "cye-2027-energy-en-sun", "chunk": 24, "home": "home", "file
 let data = {}; try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
 let layout = null, meta = null, cur = null, scale = 1;
 const files = {};
-const get = (u, kind) => files[u] || (files[u] = fetch(u).then(r => { if (!r.ok) throw u; return kind === 'json' ? r.json() : r.text(); }));
+let ff = null;  // gzip reader for browsers without DecompressionStream (older iPhones)
+const gunzip = async buf => {
+  if ('DecompressionStream' in window) return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  if (!ff) ff = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'fflate.js'; s.onload = () => ok(window.fflate); s.onerror = no; document.head.appendChild(s); });
+  const f = await ff; return f.strFromU8(f.gunzipSync(new Uint8Array(buf)));
+};
+const get = (u, kind) => files[u] || (files[u] = fetch(u).then(async r => { if (!r.ok) throw u;
+  const t = u.endsWith('.gz') ? await gunzip(await r.arrayBuffer()) : await r.text(); return kind === 'json' ? JSON.parse(t) : t; }));
 const pick = () => { const r = innerWidth / innerHeight; return r < .62 ? 'phone' : r < 1.08 ? 'portrait' : 'landscape'; };
 let warned = false;
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { if (!warned) { warned = true; alert(T.full); } } };
@@ -223,8 +230,8 @@ async function show(pid) {
   if (want !== layout) { layout = want; meta = await get(`${layout}/meta.json`, 'json');
     document.getElementById('lcss').textContent = meta.css; }
   let i = meta.ids.indexOf(pid); if (i < 0) { pid = meta.ids[0]; i = 0; }
-  const [chunk, ...arts] = await Promise.all([get(`${layout}/c${Math.floor(i / APP.chunk)}.json`, 'json'),
-    ...meta.art[i].map(a => get(`${layout}/a${a}.svg`))]);
+  const [chunk, ...arts] = await Promise.all([get(`${layout}/c${Math.floor(i / APP.chunk)}.json.gz`, 'json'),
+    ...meta.art[i].map(a => get(`${layout}/a${a}.svg.gz`))]);
   cur = pid; fit();
   stage.style.width = meta.W + 'px'; stage.style.height = meta.H + 'px';
   stage.innerHTML = arts.map(s => `<div class="art">${s}</div>`).join('') + chunk[pid];
@@ -328,7 +335,7 @@ try { if (!localStorage.getItem(KEY + '-hint')) { const h = document.createEleme
   document.body.appendChild(h); setTimeout(() => h.style.opacity = 0, 4000); localStorage.setItem(KEY + '-hint', '1'); } } catch (e) {}
 show(location.hash.slice(1) || APP.home).then(() => setTimeout(async () => {  // keep this layout offline: fetch it once, quietly
   const l = layout, n = Math.ceil(meta.ids.length / APP.chunk), na = Math.max(...meta.art.flat()) + 1;
-  for (const u of [...Array(n).keys()].map(i => `${l}/c${i}.json`).concat([...Array(na).keys()].map(i => `${l}/a${i}.svg`)))
+  for (const u of [...Array(n).keys()].map(i => `${l}/c${i}.json.gz`).concat([...Array(na).keys()].map(i => `${l}/a${i}.svg.gz`)))
     try { await fetch(u); } catch (e) { return; }
 }, 3000));
 </script></body></html>
