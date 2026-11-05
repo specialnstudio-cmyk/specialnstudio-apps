@@ -30,10 +30,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
 </style></head><body>
 <div id="stage"></div><div id="wait">Loading…</div>
 <button id="mbtn" aria-label="Menu">⋯</button>
-<div id="menu"><div><p>Swipe left or right to turn the page (arrow keys on a computer). Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
+<div id="menu"><div><p>Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
 <button id="bclose">Close</button><input id="file" type="file" accept=".json,application/json" hidden></div></div>
 <script>
-const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en"}, T = {"menu": "Menu", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "hint": "Swipe left or right to turn the page", "note": "Swipe left or right to turn the page (arrow keys on a computer). Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
+const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en"}, T = {"menu": "Menu", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "hint": "Swipe left or right to turn the page", "note": "Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
 let data = {}; try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
 let layout = null, meta = null, cur = null, scale = 1;
 const files = {};
@@ -88,6 +88,26 @@ function fields(pg, pid) {  // text boxes and check boxes over every writing lin
   }
 }
 
+function taps(pg, pid) {  // colouring pages: a tap gives a cell the next colour; mood picks one; stars rate
+  pg.querySelectorAll('[data-tap]').forEach((el, i) => {
+    const key = `${pid}|tap${i}`, mode = el.dataset.tap, svg = el.tagName.toLowerCase() === 'svg' ? el.querySelector('path') : null;
+    const orig = svg ? svg.getAttribute('fill') : el.style.background, origColor = el.style.color;
+    const paint = () => { const v = data[key] || 0;
+      if (mode === 'one') { el.style.boxShadow = v ? '0 0 0 3px #fff, 0 0 0 6px #2A1630' : ''; el.style.transform = v ? 'scale(1.12)' : ''; }
+      else if (mode === 'star') el.style.color = v ? origColor : '#fff';
+      else { const c = v ? mode.split('|')[v - 1] : orig; if (svg) svg.setAttribute('fill', c); else el.style.background = c; } };
+    el._paint = paint; el.style.cursor = 'pointer'; paint();
+    el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation();
+      const g = el.closest('[data-group]'), sib = g ? [...g.querySelectorAll('[data-tap]')] : [];
+      if (mode === 'one') { const on = !data[key]; sib.forEach(x => { data[x._key] = undefined; }); data[key] = on ? 1 : undefined; sib.forEach(x => x._paint()); }
+      else if (mode === 'star') { const j = sib.indexOf(el), full = sib.filter(x => data[x._key]).length;
+        sib.forEach((x, k) => { data[x._key] = (full === j + 1 ? 0 : k <= j) ? 1 : undefined; x._paint(); }); }
+      else { const n = mode.split('|').length; data[key] = ((data[key] || 0) + 1) % (n + 1) || undefined; paint(); }
+      save(); });
+    el._key = key;
+  });
+}
+
 function fit() {
   if (!meta) return; scale = Math.min(innerWidth / meta.W, innerHeight / meta.H);
   stage.style.transform = `translate(${(innerWidth - meta.W * scale) / 2}px,${(innerHeight - meta.H * scale) / 2}px) scale(${scale})`;
@@ -103,7 +123,7 @@ async function show(pid) {
   cur = pid; fit();
   stage.style.width = meta.W + 'px'; stage.style.height = meta.H + 'px';
   stage.innerHTML = arts.map(s => `<div class="art">${s}</div>`).join('') + chunk[pid];
-  const pg = stage.querySelector('.page'); fill(pg); fields(pg, pid);
+  const pg = stage.querySelector('.page'); fill(pg); fields(pg, pid); taps(pg, pid);
   document.getElementById('wait').style.display = 'none';
   if (location.hash.slice(1) !== pid) history.replaceState(null, '', '#' + pid);
   scrollTo(0, 0);
