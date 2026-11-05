@@ -23,14 +23,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
   font:16px/1.4 -apple-system,system-ui,sans-serif;text-align:center}
 #menu button{display:block;width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #2A1630;
   background:#fff;font:700 16px -apple-system,system-ui,sans-serif;color:#2A1630}
+#hint{position:fixed;z-index:4;left:50%;bottom:calc(env(safe-area-inset-bottom) + 48px);transform:translateX(-50%);
+  background:rgba(42,22,48,.85);color:#fff;padding:10px 16px;border-radius:20px;font:600 15px -apple-system,system-ui,sans-serif;
+  white-space:nowrap;transition:opacity .6s;pointer-events:none}
 #wait{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:16px sans-serif;color:#fff}
 </style></head><body>
 <div id="stage"></div><div id="wait">Loading…</div>
 <button id="mbtn" aria-label="Menu">⋯</button>
-<div id="menu"><div><p>Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
+<div id="menu"><div><p>Swipe left or right to turn the page (arrow keys on a computer). Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
 <button id="bclose">Close</button><input id="file" type="file" accept=".json,application/json" hidden></div></div>
 <script>
-const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en"}, T = {"menu": "Menu", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "note": "Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
+const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en"}, T = {"menu": "Menu", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "hint": "Swipe left or right to turn the page", "note": "Swipe left or right to turn the page (arrow keys on a computer). Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
 let data = {}; try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
 let layout = null, meta = null, cur = null, scale = 1;
 const files = {};
@@ -112,6 +115,15 @@ stage.addEventListener('click', e => {
   else if (h.startsWith('http')) { e.preventDefault(); open(h, '_blank'); }
 });
 addEventListener('popstate', () => show(location.hash.slice(1) || APP.home));
+const turn = d => { if (!meta) return; const i = meta.ids.indexOf(cur) + d;  // page turning, like scrolling the PDF
+  if (i >= 0 && i < meta.ids.length) { history.pushState(null, '', '#' + meta.ids[i]); show(meta.ids[i]); } };
+let tx = null, ty = 0;
+addEventListener('touchstart', e => { if (e.touches.length === 1 && menu.style.display !== 'flex') { tx = e.touches[0].clientX; ty = e.touches[0].clientY; } else tx = null; }, {passive: true});
+addEventListener('touchend', e => { if (tx === null) return; const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty; tx = null;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > 1.5 * Math.abs(dy)) turn(dx < 0 ? 1 : -1); }, {passive: true});
+addEventListener('keydown', e => { if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(e.key)) turn(1);
+  if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) turn(-1); });
 let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => pick() !== layout ? show(cur) : fit(), 150); });
 
 const menu = document.getElementById('menu');
@@ -131,6 +143,8 @@ file.onchange = async () => {
   file.value = '';
 };
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+try { if (!localStorage.getItem(KEY + '-hint')) { const h = document.createElement('div'); h.id = 'hint'; h.textContent = T.hint;
+  document.body.appendChild(h); setTimeout(() => h.style.opacity = 0, 4000); localStorage.setItem(KEY + '-hint', '1'); } } catch (e) {}
 show(location.hash.slice(1) || APP.home).then(() => setTimeout(async () => {  // keep this layout offline: fetch it once, quietly
   const l = layout, n = Math.ceil(meta.ids.length / APP.chunk), na = Math.max(...meta.art.flat()) + 1;
   for (const u of [...Array(n).keys()].map(i => `${l}/c${i}.json`).concat([...Array(na).keys()].map(i => `${l}/a${i}.svg`)))
