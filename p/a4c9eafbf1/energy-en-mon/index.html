@@ -32,20 +32,36 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
 #nbar span{padding:0 6px}
 #nbar button{border:0;background:#fff;color:#2A1630;border-radius:50%;width:30px;height:30px;font:700 17px sans-serif}
 #nbar button:disabled{opacity:.35}
+#nbar span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;text-decoration:underline dotted}
+#nlist{position:fixed;z-index:7;inset:0;background:rgba(42,22,48,.45);display:none;align-items:center;justify-content:center}
+#nlist>div{background:#FFF6E9;color:#2A1630;border-radius:18px;padding:18px;width:min(420px,calc(100vw - 32px));max-height:80vh;overflow:auto;
+  font:16px -apple-system,system-ui,sans-serif}
+#nlist h3{margin:0 0 10px}
+#nlist .nr{display:flex;align-items:center;gap:8px;margin:6px 0}
+#nlist .nr.on input{border-color:#FF3E8A}
+#nlist .nr b{width:24px;text-align:right}
+#nlist input{flex:1;min-width:0;padding:9px 10px;border:2px solid #2A1630;border-radius:10px;font:16px -apple-system,system-ui,sans-serif}
+#nlist .nr button{width:40px;height:40px;border-radius:10px;border:2px solid #2A1630;background:#fff;font:700 18px sans-serif;color:#2A1630}
+#nlist>div>button{display:block;width:100%;margin-top:10px;padding:12px;border-radius:12px;border:2px solid #2A1630;background:#fff;
+  font:700 16px -apple-system,system-ui,sans-serif;color:#2A1630}
+#stage .px{position:absolute;right:6%;top:6%;width:34px;height:34px;border-radius:50%;border:2px solid #2A1630;background:#fff;
+  color:#2A1630;font:700 20px sans-serif;display:flex;align-items:center;justify-content:center;padding:0}
+#stage .px.plus{right:auto;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;opacity:.55;pointer-events:none}
 #wait{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font:16px sans-serif;color:#fff}
 </style></head><body>
-<div id="stage"></div><div id="wait">Loading…</div>
+<div id="stage"></div><div id="nlist"></div><div id="wait">Loading…</div>
 <button id="mbtn" aria-label="Menu">⋯</button>
-<div id="menu"><div><p>Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
+<div id="menu"><div><p>Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet; tap the page number to name your sheets and jump to one. On the vision board, tap a frame to add a photo. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.</p><button id="bsave">Save a backup</button><button id="bload">Restore a backup</button>
 <button id="bclose">Close</button><input id="file" type="file" accept=".json,application/json" hidden></div></div>
 <script>
-const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en", "notes": ["t-dot", "t-lined", "t-grid", "t-blank", "t-cornell", "t-brain"]}, T = {"menu": "Menu", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "hint": "Swipe left or right to turn the page", "note": "Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
+const APP = {"key": "cye-2027-energy-en-mon", "chunk": 24, "home": "home", "file": "planner-backup-energy-en", "notes": ["t-dot", "t-lined", "t-grid", "t-blank", "t-cornell", "t-brain"]}, T = {"menu": "Menu", "full": "This device's planner storage is full. Remove a few photos, then save a backup.", "page": "Page", "pages": "Pages", "newpage": "New page", "save": "Save a backup", "load": "Restore a backup", "close": "Close", "saved": "Backup saved. Keep the file somewhere safe (Files, iCloud Drive, Google Drive).", "loaded": "Backup restored.", "bad": "This file is not a planner backup.", "hint": "Swipe left or right to turn the page", "note": "Swipe left or right to turn the page (arrow keys on a computer). Tap a square, circle or drop to colour it in. On note pages, + adds a new sheet; tap the page number to name your sheets and jump to one. On the vision board, tap a frame to add a photo. Your planner is saved on this device only. To move it to another phone, tablet or computer, save a backup here and restore it there.", "loading": "Loading…"}, KEY = APP.key, stage = document.getElementById('stage');
 let data = {}; try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
 let layout = null, meta = null, cur = null, scale = 1;
 const files = {};
 const get = (u, kind) => files[u] || (files[u] = fetch(u).then(r => { if (!r.ok) throw u; return kind === 'json' ? r.json() : r.text(); }));
 const pick = () => { const r = innerWidth / innerHeight; return r < .62 ? 'phone' : r < 1.08 ? 'portrait' : 'landscape'; };
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {} };
+let warned = false;
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { if (!warned) { warned = true; alert(T.full); } } };
 
 function fill(root) {  // the writing lines, dots and grids (same drawing as the PDF)
   root.querySelectorAll('[data-fill]').forEach(el => {
@@ -116,6 +132,28 @@ function taps(pg, pid) {  // colouring pages: a tap gives a cell the next colour
   });
 }
 
+function photos(pg, pid) {  // vision board: tap a frame to put a photo in it, × takes it out
+  pg.querySelectorAll('[data-photo]').forEach((el, i) => {
+    const key = `${pid}|photo${i}`;
+    const paint = () => { const v = data[key];
+      Object.assign(el.style, v ? {backgroundImage: `url(${v})`, backgroundSize: 'cover', backgroundPosition: 'center'} : {backgroundImage: ''});
+      el.querySelectorAll('.px').forEach(x => x.remove());
+      el.style.position = 'relative'; el.style.cursor = 'pointer';
+      el.insertAdjacentHTML('beforeend', v ? '<button class="px" aria-label="remove">×</button>' : '<span class="px plus">＋</span>'); };
+    paint();
+    el.addEventListener('click', e => { e.preventDefault();
+      if (e.target.classList.contains('px') && data[key]) { data[key] = undefined; save(); paint(); return; }
+      const f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*';
+      f.onchange = () => { const img = new Image(), url = URL.createObjectURL(f.files[0]);
+        img.onload = () => { const m = 900 / Math.max(img.width, img.height), c = document.createElement('canvas');
+          c.width = Math.round(img.width * Math.min(1, m)); c.height = Math.round(img.height * Math.min(1, m));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+          data[key] = c.toDataURL('image/jpeg', .8); save(); paint(); };
+        img.src = url; };
+      f.click(); });
+  });
+}
+
 function fit() {
   if (!meta) return; scale = Math.min(innerWidth / meta.W, innerHeight / meta.H);
   stage.style.transform = `translate(${(innerWidth - meta.W * scale) / 2}px,${(innerHeight - meta.H * scale) / 2}px) scale(${scale})`;
@@ -127,10 +165,25 @@ function noteBar(base) {
   let bar = document.getElementById('nbar'); if (bar) bar.remove(); if (!NOTES.includes(base)) return;
   const n = Math.max(data[`${base}~n`] || 1, sheet);
   bar = document.createElement('div'); bar.id = 'nbar';
-  bar.innerHTML = `<button data-k="${sheet - 1}" ${sheet > 1 ? '' : 'disabled'}>‹</button><span>${sheet} / ${n}</span>` +
+  const name = k => data[`${base}~name${k}`] || '', esc = t => t.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
+  const label = name(sheet) ? esc(name(sheet)) : `${sheet} / ${n}`;
+  bar.innerHTML = `<button data-k="${sheet - 1}" ${sheet > 1 ? '' : 'disabled'}>‹</button><span data-k="list">${label}</span>` +
     `<button data-k="${sheet + 1}" ${sheet < n ? '' : 'disabled'}>›</button><button data-k="new">＋</button>`;
+  const open = k => go(k === 1 ? base : `${base}~${k}`), add = () => { data[`${base}~n`] = n + 1; save(); open(n + 1); };
   bar.onclick = e => { const k = e.target.dataset && e.target.dataset.k; if (!k) return;
-    if (k === 'new') { data[`${base}~n`] = n + 1; save(); go(`${base}~${n + 1}`); } else go(k === '1' ? base : `${base}~${k}`); };
+    if (k === 'new') add(); else if (k === 'list') list(); else open(+k); };
+  const list = () => {  // every sheet of this note page, with a name the buyer can give it
+    const box = document.getElementById('nlist'), rows = [...Array(n).keys()].map(i => i + 1).map(k =>
+      `<div class="nr${k === sheet ? ' on' : ''}"><b>${k}</b><input data-k="${k}" value="${esc(name(k))}" placeholder="${T.page} ${k}">` +
+      `<button data-go="${k}">›</button></div>`).join('');
+    box.innerHTML = `<div><h3>${T.pages}</h3>${rows}<button data-new>＋ ${T.newpage}</button><button data-close>${T.close}</button></div>`;
+    box.style.display = 'flex';
+    box.oninput = e => { const k = e.target.dataset.k; if (k) { data[`${base}~name${k}`] = e.target.value.trim() || undefined; save(); } };
+    box.onclick = e => { const t = e.target;
+      if (t.dataset.go) { box.style.display = 'none'; open(+t.dataset.go); }
+      else if ('new' in t.dataset) { box.style.display = 'none'; add(); }
+      else if ('close' in t.dataset || t === box) { box.style.display = 'none'; noteBar(base); } };
+  };
   document.body.appendChild(bar);
 }
 const go = id => { history.pushState(null, '', '#' + id); show(id); };
@@ -147,7 +200,7 @@ async function show(pid) {
   stage.style.width = meta.W + 'px'; stage.style.height = meta.H + 'px';
   stage.innerHTML = arts.map(s => `<div class="art">${s}</div>`).join('') + chunk[pid];
   const sid = sheet > 1 ? `${pid}~${sheet}` : pid;  // later note sheets keep their own text
-  const pg = stage.querySelector('.page'); fill(pg); fields(pg, sid); taps(pg, sid); noteBar(pid);
+  const pg = stage.querySelector('.page'); fill(pg); fields(pg, sid); taps(pg, sid); photos(pg, sid); noteBar(pid);
   document.getElementById('wait').style.display = 'none';
   if (location.hash.slice(1) !== sid) history.replaceState(null, '', '#' + sid);
   scrollTo(0, 0);
