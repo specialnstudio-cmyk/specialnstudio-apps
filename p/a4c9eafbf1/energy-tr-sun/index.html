@@ -38,7 +38,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
   font:16px -apple-system,system-ui,sans-serif}
 #nlist h3{margin:0 0 10px}
 #nlist label{display:block;margin:8px 0;font-weight:600}
-#nlist label input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:10px;border:2px solid #2A1630;border-radius:10px;
+#nlist label select,#nlist label input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:10px;border:2px solid #2A1630;border-radius:10px;
   font:16px -apple-system,system-ui,sans-serif;background:#fff;color:#2A1630;max-width:100%;min-width:0}
 #nlist label input[type=date]{-webkit-appearance:none;appearance:none;min-height:46px;text-align:left;line-height:24px}
 #nlist label input[type=date]::-webkit-date-and-time-value{text-align:left}
@@ -59,7 +59,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#2A1630;-webkit-text-s
 <div id="menu"><div><p>Sayfa çevirmek için sola ya da sağa kaydır (bilgisayarda ok tuşları). Boyamak için kareye, daireye ya da damlaya dokun. Not sayfalarında + yeni sayfa ekler; sayfalarına isim vermek ve birine gitmek için sayfa numarasına dokun. Vision board'da ve kitaplıkta fotoğraf eklemek için bir çerçeveye ya da kitaba dokun. Planlayıcın sadece bu cihazda kayıtlı. Başka bir telefona, tablete ya da bilgisayara taşımak için burada yedeği kaydet, orada geri yükle.</p><button id="bsave">Yedeği kaydet</button><button id="bload">Yedeği geri yükle</button>
 <button id="bclose">Kapat</button><input id="file" type="file" accept=".json,application/json" hidden></div></div>
 <script>
-const APP = {"key": "cye-2027-energy-tr-sun", "chunk": 24, "home": "home", "file": "planner-backup-energy-tr", "year": 2027, "notes": ["t-dot", "t-lined", "t-grid", "t-blank", "t-cornell", "t-brain"]}, T = {"menu": "Menü", "bday": "Doğum günü ekle", "bname": "İsim", "bdate": "Tarih", "badd": "Apple Takvim'e ekle", "bgoogle": "Google Takvim'e ekle", "bnote": "Her yıl tekrarlar, o gün hatırlatır.", "btitle": "🎂 ", "unphoto": "Bu fotoğraf kaldırılsın mı? (Vazgeç yeni bir fotoğraf seçer.)", "full": "Bu cihazdaki planlayıcı alanı doldu. Birkaç fotoğrafı çıkar, sonra bir yedek kaydet.", "page": "Sayfa", "pages": "Sayfalar", "newpage": "Yeni sayfa", "save": "Yedeği kaydet", "load": "Yedeği geri yükle", "close": "Kapat", "saved": "Yedek kaydedildi. Dosyayı güvenli bir yerde sakla (Dosyalar, iCloud Drive, Google Drive).", "loaded": "Yedek geri yüklendi.", "bad": "Bu dosya bir planlayıcı yedeği değil.", "hint": "Sayfa çevirmek için sola ya da sağa kaydır", "note": "Sayfa çevirmek için sola ya da sağa kaydır (bilgisayarda ok tuşları). Boyamak için kareye, daireye ya da damlaya dokun. Not sayfalarında + yeni sayfa ekler; sayfalarına isim vermek ve birine gitmek için sayfa numarasına dokun. Vision board'da ve kitaplıkta fotoğraf eklemek için bir çerçeveye ya da kitaba dokun. Planlayıcın sadece bu cihazda kayıtlı. Başka bir telefona, tablete ya da bilgisayara taşımak için burada yedeği kaydet, orada geri yükle.", "loading": "Yükleniyor…"}, KEY = APP.key, stage = document.getElementById('stage');
+const APP = {"key": "cye-2027-energy-tr-sun", "chunk": 24, "home": "home", "file": "planner-backup-energy-tr", "year": 2027, "notes": ["t-dot", "t-lined", "t-grid", "t-blank", "t-cornell", "t-brain"]}, T = {"menu": "Menü", "bday": "Doğum günü ekle", "bname": "İsim", "bdate": "Tarih", "badd": "Apple Takvim'e ekle", "bgoogle": "Google Takvim'e ekle", "bnote": "Başladığında hatırlatma gelir.", "rem": "Hatırlatma ekle", "brep": "Tekrar", "freq": ["Hiç", "Her gün", "Her hafta", "Her ay", "Her yıl"], "btitle": "🎂 ", "unphoto": "Bu fotoğraf kaldırılsın mı? (Vazgeç yeni bir fotoğraf seçer.)", "full": "Bu cihazdaki planlayıcı alanı doldu. Birkaç fotoğrafı çıkar, sonra bir yedek kaydet.", "page": "Sayfa", "pages": "Sayfalar", "newpage": "Yeni sayfa", "save": "Yedeği kaydet", "load": "Yedeği geri yükle", "close": "Kapat", "saved": "Yedek kaydedildi. Dosyayı güvenli bir yerde sakla (Dosyalar, iCloud Drive, Google Drive).", "loaded": "Yedek geri yüklendi.", "bad": "Bu dosya bir planlayıcı yedeği değil.", "hint": "Sayfa çevirmek için sola ya da sağa kaydır", "note": "Sayfa çevirmek için sola ya da sağa kaydır (bilgisayarda ok tuşları). Boyamak için kareye, daireye ya da damlaya dokun. Not sayfalarında + yeni sayfa ekler; sayfalarına isim vermek ve birine gitmek için sayfa numarasına dokun. Vision board'da ve kitaplıkta fotoğraf eklemek için bir çerçeveye ya da kitaba dokun. Planlayıcın sadece bu cihazda kayıtlı. Başka bir telefona, tablete ya da bilgisayara taşımak için burada yedeği kaydet, orada geri yükle.", "loading": "Yükleniyor…"}, KEY = APP.key, stage = document.getElementById('stage');
 let data = {}; try { data = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
 let layout = null, meta = null, cur = null, scale = 1;
 const files = {};
@@ -212,38 +212,60 @@ async function show(pid) {
   scrollTo(0, 0);
 }
 
-function birthday() {  // the app writes the calendar file itself, so the event already carries the name
-  const box = document.getElementById('nlist');
-  box.innerHTML = `<div><h3>${T.bday}</h3><label>${T.bname}<input id="bn" autocomplete="off"></label>` +
-    `<label>${T.bdate}<input id="bd" type="date" value="${APP.year}-01-01"></label><p>${T.bnote}</p>` +
-    `<button data-apple>${T.badd}</button><button data-google>${T.bgoogle}</button><button data-close>${T.close}</button></div>`;
-  box.style.display = 'flex';
-  box.oninput = null;
-  box.onclick = e => { const t = e.target, name = (document.getElementById('bn').value || '').trim(),
-      d = (document.getElementById('bd').value || '').replace(/-/g, '');
+function dialog(o) {  // the app writes the calendar file itself, so the event carries the buyer's own name and time
+  const box = document.getElementById('nlist'), freqs = ['', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
+  const f0 = ((o.rule || '').match(/FREQ=(\w+)/) || [])[1] || '';
+  box.innerHTML = `<div><h3>${o.head}</h3><label>${T.bname}<input id="bn" autocomplete="off"></label>` +
+    `<label>${T.bdate}<input id="bd" type="${o.allday ? 'date' : 'datetime-local'}"></label>` +
+    `<label>${T.brep}<select id="br">${freqs.map((f, i) => `<option value="${f}"${f === f0 ? ' selected' : ''}>${T.freq[i]}</option>`).join('')}</select></label>` +
+    `<p>${T.bnote}</p><button data-apple>${T.badd}</button><button data-google>${T.bgoogle}</button><button data-close>${T.close}</button></div>`;
+  document.getElementById('bn').value = o.name || ''; document.getElementById('bd').value = o.when;
+  box.style.display = 'flex'; box.oninput = null;
+  box.onclick = e => { const t = e.target;
     if ('close' in t.dataset || t === box) { box.style.display = 'none'; return; }
-    if (!/^\d{8}$/.test(d)) return;
-    const title = T.btitle + (name || T.bday), next = new Date(+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6) + 1),
-      end = `${next.getFullYear()}${String(next.getMonth() + 1).padStart(2, '0')}${String(next.getDate()).padStart(2, '0')}`;
+    if (!('apple' in t.dataset) && !('google' in t.dataset)) return;
+    const v = document.getElementById('bd').value, m = v.match(/^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?/); if (!m) return;
+    const f = document.getElementById('br').value, rule = !f ? '' : f === f0 ? o.rule : `FREQ=${f}`;
+    const title = (document.getElementById('bn').value || '').trim() || o.head, clean = title.replace(/[,;\\]/g, ' ');
+    const pad = n => String(n).padStart(2, '0'), ymd = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+    let start, end;
+    if (o.allday) { const d = new Date(+m[1], +m[2] - 1, +m[3]); start = ymd(d); d.setDate(d.getDate() + 1); end = ymd(d); }
+    else { const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]); start = `${ymd(d)}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+      d.setHours(d.getHours() + 1); end = `${ymd(d)}T${pad(d.getHours())}${pad(d.getMinutes())}00`; }
     if ('apple' in t.dataset) {
-      const clean = title.replace(/[,;\\]/g, ' ');
       const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//SpecialNStudio//Planner//EN', 'BEGIN:VEVENT',
         `UID:${Date.now()}-${Math.random().toString(36).slice(2)}@planner`, 'DTSTAMP:20260101T000000Z',
-        `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${end}`, 'RRULE:FREQ=YEARLY', `SUMMARY:${clean}`,
-        'BEGIN:VALARM', 'TRIGGER:PT9H', 'ACTION:DISPLAY', `DESCRIPTION:${clean}`, 'END:VALARM',
+        o.allday ? `DTSTART;VALUE=DATE:${start}` : `DTSTART:${start}`, o.allday ? `DTEND;VALUE=DATE:${end}` : `DTEND:${end}`,
+        ...(rule ? [`RRULE:${rule}`] : []), `SUMMARY:${clean}`,
+        'BEGIN:VALARM', o.allday ? 'TRIGGER:PT9H' : 'TRIGGER:-PT0M', 'ACTION:DISPLAY', `DESCRIPTION:${clean}`, 'END:VALARM',
         'END:VEVENT', 'END:VCALENDAR', ''].join('\r\n');
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], {type: 'text/calendar'}));
-      a.download = 'birthday.ics'; document.body.appendChild(a); a.click(); a.remove();
-    } else if ('google' in t.dataset) {
-      open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${d}/${end}` +
-        `&recur=${encodeURIComponent('RRULE:FREQ=YEARLY')}`, '_blank');
-    } };
+      a.download = 'event.ics'; document.body.appendChild(a); a.click(); a.remove();
+    } else open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}` +
+        (rule ? `&recur=${encodeURIComponent('RRULE:' + rule)}` : ''), '_blank');
+  };
   setTimeout(() => document.getElementById('bn').focus(), 50);
+}
+const birthday = () => dialog({head: T.bday, name: '', allday: true, when: `${APP.year}-01-01`, rule: 'FREQ=YEARLY'});
+async function repeat(href, label) {  // "+ Apple repeat": the reminder's calendar file gives the defaults
+  let txt = '';
+  try { const r = await fetch(href); if (r.ok) txt = await r.text(); } catch (e) {}
+  const get = k => ((txt.match(new RegExp(`^${k}[:;][^\r\n]*`, 'm')) || [''])[0].split(':').slice(1).join(':'));
+  let name = get('SUMMARY'), st = get('DTSTART'), rule = get('RRULE');
+  if (!st) {  // offline: read it from the file name, e.g. en-budget-check-freq-monthly-0101-1900.ics
+    const parts = decodeURIComponent(href.split('/').pop().replace('.ics', '')).split('-'), hm = parts.pop(), md = parts.pop();
+    const fi = parts.indexOf('freq'); st = `${APP.year}${md}T${hm}00`;
+    rule = fi < 0 ? '' : parts.slice(fi).join(' ').toUpperCase().replace(/(\w+) (\w+)/g, '$1=$2;').replace(/;$/, '').replace(/ /g, '');
+    name = parts.slice(1, fi < 0 ? undefined : fi).join(' '); name = name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  const when = `${st.slice(0, 4)}-${st.slice(4, 6)}-${st.slice(6, 8)}T${st.slice(9, 11) || '09'}:${st.slice(11, 13) || '00'}`;
+  dialog({head: label, name: name.trim(), allday: false, when, rule});
 }
 
 stage.addEventListener('click', e => {
   const a = e.target.closest('a'); if (!a) return; const h = a.getAttribute('href') || '';
   if (h.includes('/bday/')) { e.preventDefault(); birthday(); return; }
+  if (/\/cal\/[^/]+\.ics$/.test(h)) { e.preventDefault(); repeat(h, T.rem); return; }
   if (h.startsWith('#')) { e.preventDefault(); if (h.length > 1) { history.pushState(null, '', h); show(h.slice(1)); } }
   else if (h.startsWith('http')) { e.preventDefault(); open(h, '_blank'); }
 });
